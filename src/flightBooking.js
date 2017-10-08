@@ -4,6 +4,8 @@
  */
 
 const rp = require('request-promise')
+const getSymbolFromCurrency = require('currency-symbol-map')
+
 
 var aviationJson = require("aviation-json");
 const airlines = aviationJson.airlines;
@@ -18,7 +20,6 @@ const options = {
   grokText: true, // convert truthy text/attr to boolean, etc
   normalize: true, // collapse multiple spaces to single space
   xmlns: true, // include namespaces as attributes in output
-  // tag for cdata nodes (ignored if mergeCDATA is true)
   attrsAsObject: true, // if false, key is used as prefix to name, set prefix to '' to merge children and attrs.
   stripAttrPrefix: true, // remove namespace prefixes from attributes
   stripElemPrefix: true, // for elements of same name in diff namespaces, you can enable namespaces and access the nskey property
@@ -178,8 +179,8 @@ const flightBooking = (result) => {
             });
             var cards = [];
             for (var i = 0; i < flights.length; i++) {
-              // console.log((flights[i].AirItineraryPricingInfo.PTC_FareBreakdowns[0].PassengerFare[0].TotalFare.Amount));
-              var currency = flights[i].AirItineraryPricingInfo.PriceRequestInformation.CurrencyCode;
+              var totalFare=flights[i].AirItineraryPricingInfo.PTC_FareBreakdowns[0].PassengerFare[0].TotalFare.Amount
+              var currency = getSymbolFromCurrency(flights[i].AirItineraryPricingInfo.PriceRequestInformation.CurrencyCode);
               var flightCode = flights[i].AirItinerary.OriginDestinationOptions[0].FlightSegment[0].OperatingAirline.Code;
               var Departure = formatAMPM(new Date(flights[i].AirItinerary.OriginDestinationOptions[0].FlightSegment[0].DepartureDateTime));
               var Arrival = formatAMPM(new Date(flights[i].AirItinerary.OriginDestinationOptions[0].FlightSegment[0].ArrivalDateTime));
@@ -187,7 +188,7 @@ const flightBooking = (result) => {
               var totalDurationInMinutes = flights[i].AirItinerary.OriginDestinationOptions[0].TotalDurationInMinutes;
 
               var airlineDetails=getAirlineDetails(flightCode);
-              var price= currency +' ';
+              var price= currency +' '+totalFare;
               var name='';
               var logoLink='';
               if(airlineDetails!=undefined && airlineDetails!=null){
@@ -199,7 +200,7 @@ const flightBooking = (result) => {
               }
               // var titleName=airlineDetails.name!=undefined?airlineDetails.name:flightCode;
               var flightCard = {
-                title: name + '( Flight No: ' + flightNumber + ' )',
+                title: name + '( Flight No: ' + flightNumber + '  '+price+' )',
                 imageUrl : logoLink,
                 subtitle: Departure + ' - ' + Arrival + ' ( ' + totalDurationInMinutes + 'mins ) ',
                 buttons: [{
@@ -210,7 +211,7 @@ const flightBooking = (result) => {
               }
               cards.push(flightCard);
             }
-
+            console.log(cards);
             return {
               type: 'list',
               content:  {

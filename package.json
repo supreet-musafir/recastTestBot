@@ -21,6 +21,7 @@
     "babel-polyfill": "^6.22.0",
     "body-parser": "^1.15.2",
     "cities": "^1.1.2",
+    "currency-symbol-map": "^4.0.2",
     "express": "^4.14.0",
     "moment": "^2.18.1",
     "recastai": "^3.1.1",
