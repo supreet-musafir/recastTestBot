@@ -5,6 +5,8 @@
 
 const recastai = require('recastai')
 
+const flightBooking = require('./flightBooking')
+
 // This function is the core of the bot behaviour
 const replyMessage = (message) => {
   // Instantiate Recast.AI SDK, just for request service
@@ -43,6 +45,23 @@ const replyMessage = (message) => {
     message.reply()
     .then(() => {
       // Do some code after sending messages
+      // console.log((result.nextActions[0].reply));
+
+       if (text != 'ResetConversation') {
+         if (result.action.slug == 'greetings' && result.action.done) {
+           result.resetMemory();
+         }
+        if (result.action.slug == 'find-flight' && result.action.done) {
+          flightBooking(result)
+            .then(res => {
+              message.addReply(res);
+              message.reply()
+                .then(() => {});
+           })
+          }
+         } else {
+          result.resetConversation();
+         }
     })
     .catch(err => {
       console.error('Error while sending message to channel', err)
